@@ -1,0 +1,95 @@
+#include<stdio.h>
+#define K 4
+#define N 8
+
+void print_gm(unsigned int gm_ns[K][N]);
+void ns_to_sys(unsigned int gm_ns[K][N],unsigned int gm_sys[K][N]);
+
+int main(void)
+{
+	unsigned int gm_ns[K][N]; 
+	unsigned int gm_sys[K][N];
+	
+	FILE *fp;
+	int i,j;
+	
+	fp=fopen("generator_matrix_ns.txt","r");
+	for(i=0;i<K;i++)
+	{
+		for(j=0;j<N;j++)
+		{
+			fscanf(fp,"%1d",&gm_ns[i][j]);
+		}
+	}
+	fclose(fp);
+	ns_to_sys(gm_ns,gm_sys);
+	print_gm(gm_ns);
+	
+	return 0;
+}
+
+void print_gm(unsigned int gm_ns[K][N])
+{
+	int i,j;
+	
+	for(i=0;i<K;i++)
+	{
+		for(j=0;j<N;j++)
+		{
+			printf("%1d",gm_ns[i][j]);
+		}
+		printf("\n");
+	}
+}
+
+void ns_to_sys(unsigned int gm_ns[K][N],unsigned int gm_sys[K][N])
+{
+	int i,j;
+	unsigned int tmp;
+	for(i=0;i<K;i++)
+	{
+		if(gm_ns[i][i]==1)
+		{
+			for(j=0;j<K;j++)
+			{
+				if(j!=i)
+				{
+					if(gm_ns[j][i]==1)
+					{
+						gm_ns[j][i]=gm_ns[j][i]^gm_ns[i][i];
+					}
+				}
+			}
+		}
+		else
+		{
+			for(j=i+1;j<K;j++)
+			{
+				if(gm_ns[j][i]==1)
+				{
+					tmp=gm_ns[j][i];
+					gm_ns[j][i]=gm_ns[i][i];
+					gm_ns[i][i]=tmp;
+				}
+			}
+			for(j=0;j<K;j++)
+			{
+				if(j!=i)
+				{
+					if(gm_ns[j][i]==1)
+					{
+						gm_ns[j][i]=gm_ns[j][i]^gm_ns[i][i];
+					}
+				}
+			}
+		}
+	}
+	for(i=0;i<K;i++)
+	{
+		for(j=0;j<N;j++)
+		{
+			gm_sys[i][j]=gm_ns[i][j];
+		}
+	}
+}
+

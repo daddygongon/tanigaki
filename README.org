@@ -1,0 +1,122 @@
+#+qiita_private: a5aa6c444ccd31e90f7a
+#+OPTIONS: ^:{}
+#+STARTUP: indent nolineimages
+#+TITLE: 谷垣の卒論
+#+AUTHOR: Shigeto R. Nishitani
+#+EMAIL:     (concat "shigeto_nishitani@mac.com")
+#+LANGUAGE:  jp
+# +OPTIONS:   H:4 toc:t num:2
+#+OPTIONS:   toc:nil
+#+TAG: gm, tanigaki
+#+TWITTER: off
+# +SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup
+
+![macOS-12.1](https://img.shields.io/badge/macOS-12.1-brightgreen) ![ruby-3.0.2p107](https://img.shields.io/badge/ruby-3.0.2p107-brightgreen)
+
+* input and output
+$F_2$上の線形符号の生成行列を考える．
+
+* gm_sys, gm_ns
+今，$K=4, N=8$とする．
+gm(generate matrix, 生成行列)を
+ns_to_sys, nsをsysにする
+生成行列の中で，
+$$
+G_{sys}=(I_4\, P)
+$$
+であるものを既約標準形という.
+ここで，$I_4$は$4$次単位行列，
+$P$は$K \times (N-K)=4\times4$ 行列である．
+
+既約標準形(irred:Irreducible standard type)
+
+#+begin_example
+gm_ns = 
+01100010
+11010111
+00111001
+10101011
+
+谷垣のコードの結果
+10000010
+01010111
+00111001
+00001011
+
+理想
+gm_sys = i行-j列成分
+1000 0010
+0100 0111
+0010 1001
+0001 1011
+#+end_example
+
+を考える．
+
+手順としては，
+1. $i=0$ とする.
+1. 生成行列の (i, i) 成分 $g_{i,i}$ を調べる
+  1. $g_{i,i} = 1$ であるなら，基本行操作を行う
+  1. $g_{i,i} = 0$ であるなら，
+    1. $g_{j,i} = 1$ であるような $j$ を探し(j > i)，
+    1. 第 $i$ 行と第 $j$ 行の成分 を交換する.
+    1. その上で，前項と同様，基本行操作を行う
+1. $i = K − $1 なら終了.
+  1. それ以外の場合は，
+  1. i をイ ンクリメントして，手順 (b) へ戻る.
+
+とされていた．
+
+この中で，(b)-iiの二つ目の手順で
+    - 第 $i$ 行と第 $j$ 行の成分 を交換する.
+とあるが，最初のコードでは，
+#+begin_src c++
+if(gm_ns[j][i]==1)
+{
+	tmp=gm_ns[j][i];
+	gm_ns[j][i]=gm_ns[i][i];
+	gm_ns[i][i]=tmp;
+}
+#+end_src
+としており，これでは行列のi-j成分を入れ替えているだけであった．
+
+そこで，新たにi,j行を入れ替える関数(swap_i_j)を以下の通り作成した．
+#+begin_src c++
+  void swap_i_j
+  (
+          unsigned int gm_ns[K][N],
+          unsigned int i,
+          unsigned int j
+  )
+  {
+          unsigned int temp;
+          int k;
+	
+          for(k=0;k<N;k++){
+                  temp=gm_ns[i][k];
+                  gm_ns[i][k]=gm_ns[j][k];
+                  gm_ns[j][k]=temp;
+          }
+  }
+#+end_src
+
+その結果，ns_to_sysは
+#+begin_example
+01100010
+11010111
+00111001
+10101011
+
+10001011
+01000010
+00101001
+00010111
+#+end_example
+となり，正しく得られたようである．
+
+
+- テスト駆動開発：答えを予測して，その通りになるかを確認していく
+- divide and conquer: 各個撃破で，methodを順次作っていく
+
+ あとは，メモをとる．それが卒論になる．
+ 
